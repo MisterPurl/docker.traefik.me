@@ -100,9 +100,10 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.jenkins.rule=Host(`jenkins.traefik.me`) && Pathprefix(`/blue`)"
+      - "traefik.http.routers.jenkins.rule=Host(`jenkins.traefik.me`)"
       - "traefik.http.routers.jenkins.entrypoints=https"
       - "traefik.http.services.jenkins.loadbalancer.server.port=80"
       - "traefik.http.routers.jenkins.tls=true"
     volumes:
       - ./jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
