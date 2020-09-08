@@ -102,7 +102,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.jenkins.rule=Host(`jenkins.traefik.me`)"
       - "traefik.http.routers.jenkins.entrypoints=https"
-      - "traefik.http.services.jenkins.loadbalancer.server.port=80"
+      - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
       - "traefik.http.routers.jenkins.tls=true"
     volumes:
       - ./jenkins-data:/var/jenkins_home
