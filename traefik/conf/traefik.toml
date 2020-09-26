@@ -1,20 +1,9 @@
+
 [entryPoints]
   [entryPoints.http]
   address = ":80"
   [entryPoints.https]
   address = ":443"
-#   [entryPoints.https.tls]
-  [entryPoints.udpdns]
-  address = ":53/udp"
-  [entryPoints.dns]
-  address = ":53"
-
-
-#[[tls]]
-#  entryPoints = ["https"]
-#  [tls.certificate]
-#    certFile = "/etc/certs/wildcard_tsunamirr_traefik_me.crt"
-#    keyFile = "/etc/certs/wildcard_tsunamirr_traefik_me.key"
 
 
 [api]
@@ -25,6 +14,3 @@
 
 [providers.docker]
   endpoint = "unix:///var/run/docker.sock"
-
-[providers.file]
-  filename = "/etc/traefik/services.toml"

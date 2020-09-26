@@ -5,105 +5,78 @@ services:
     container_name: traefik
     image: traefik:v2.2
     ports:
-        - "53:53/udp"
-        - "53:53"
         - "443:443"
         - "80:80"
     volumes:
-        - ./traefik/conf/traefik.toml:/etc/traefik/traefik.toml
-        #- ./traefik/conf/services.toml:/etc/traefik/services.toml
-        - ./traefik/certs/acme.json:/etc/acme.json
-        - ./traefik/certs/traefik.key:/etc/certs/wildcard_tsunamirr_traefik_me.key
-        - ./traefik/certs/traefik.crt:/etc/certs/wildcard_tsunamirr_traefik_me.crt
-        - /var/run/docker.sock:/var/run/docker.sock
-        - ./traefik/logs/traefik.log:/etc/traefik/applog.log
+        - ./traefik/conf/traefik.toml:/etc/traefik/traefik.toml:ro
+        - ./traefik/certs/acme.json:/etc/acme.json:rw
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - ./traefik/logs/traefik.log:/etc/traefik/applog.log:rw
     restart: unless-stopped
+    networks: 
+      - traefik_network
     labels:
-        - "traefik.http.routers.api.rule=Host(`traefik.traefik.me`)"
+        - "traefik.http.routers.api.rule=Host(`traefik.127.0.0.1.traefik.me`)"
         - "traefik.http.routers.api.service=api@internal"
         - "traefik.http.routers.api.entrypoints=https"
         - "traefik.http.routers.api.tls=true"
-        #- "traefik.http.routers.api.tls.certresolver=letsencrypt"       
-        - "traefik.http.routers.api.middlewares=auth"
-        - "traefik.http.middlewares.auth.basicauth.users=master:$$apr1$$tAp06rcF$$/PVaxQ0dUZZqy8PYdp/S7/"
-        #- "certificatesresolvers.letsencrypt.acme.traefik=true"
-        #- "certificatesresolvers.letsencrypt.acme.traefik.entrypoint=http"
-        #- "certificatesresolvers.letsencrypt.acme.email=wow.purl9@gmail.com"
-        #- "certificatesresolvers.letsencrypt.acme.storage=/etc/acme.json" 
-########## PORTAINER ##########  
-  portainer:
-        image: portainer/portainer:latest
-        container_name: portainer
-        restart: unless-stopped
-        labels:
-              - "traefik.enable=true"
-              - "traefik.http.routers.portainer.rule=Host(`portainer.traefik.me`)"
-              - "traefik.http.routers.portainer.entrypoints=https"
-              - "traefik.backend=portainer"
-              - "traefik.frontend.rule=Path: /portainer/"
-              - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-              - "traefik.http.routers.portainer.tls=true"
-        volumes:
-            - ./portainer_data:/data
-            - /var/run/docker.sock:/var/run/docker.sock
+        - --traefik.http.routers.api.tls.certresolver=le
+        - --traefik.http.routers.api.middlewares=auth
+        - --traefik.http.middlewares.auth.basicauth.users=master:$$apr1$$tAp06rcF$$/PVaxQ0dUZZqy8PYdp/S7/
+        #- --certificatesresolvers.le.acme.traefik=true
+        - --certificatesresolvers.le.acme.traefik.entrypoint=http
+        - --certificatesresolvers.le.acme.email=wow.purl9@gmail.com
+        - --certificatesresolvers.le.acme.storage=/etc/acme.json"
+        - --certificatesresolvers.le.acme.tlschallenge=true
+
 
 ########## APP TEST WHOAMI ##########  
+  appwhoami:
+        image: containous/whoami
+        container_name: app
+        restart: unless-stopped
+        networks: 
+          - traefik_network
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.whoami.rule=Host(`app.127.0.0.1.traefik.me`)"
+            - "traefik.http.routers.whoami.entrypoints=https"
+            - "traefik.http.services.whoami.loadbalancer.server.port=80"
+            - "traefik.http.routers.whoami.tls=true"
+            #- --traefik.http.routers.whoami.tls.certresolver="le"
+            - --certificatesresolvers.le.acme.tlschallenge=true
+
+########## APP TEST 1 WHOAMI ##########
   app1whoami:
         image: containous/whoami
         container_name: app1
         restart: unless-stopped
+        networks: 
+          - traefik_network
         labels:
-            - "traefik.enable=true"
-            - "traefik.http.routers.whoami.rule=Host(`home.traefik.me`) && Pathprefix(`/app1`)"
-            - "traefik.http.routers.whoami.entrypoints=https"
-            - "traefik.http.services.whoami.loadbalancer.server.port=80"
-            - "traefik.http.routers.whoami.tls=true"
- 
+              - "traefik.enable=true"
+              - "traefik.http.routers.whoami1.rule=Host(`app.127.0.0.1.traefik.me`) && Pathprefix(`/app1`)"
+              - "traefik.http.routers.whoami1.entrypoints=https"
+              - "traefik.http.services.whoami1.loadbalancer.server.port=80"
+              - "traefik.http.routers.whoami1.tls=true"
+              #- --traefik.http.routers.whoami1.tls.certresolver="letsencrypt"
+              - --certificatesresolvers.le.acme.tlschallenge=true
+
 ########## APP TEST 2 WHOAMI  ##########
   app2whoami:
            image: containous/whoami
            container_name: app2
            restart: unless-stopped
+           networks: 
+            - traefik_network
            labels:
               - "traefik.enable=true"
-              - "traefik.http.routers.whoami2.rule=Host(`home.traefik.me`) && Pathprefix(`/app2`)"
+              - "traefik.http.routers.whoami2.rule=Host(`app.127.0.0.1.traefik.me`) && Pathprefix(`/app2`)"
               - "traefik.http.routers.whoami2.entrypoints=https"
               - "traefik.http.services.whoami2.loadbalancer.server.port=80"
               - "traefik.http.routers.whoami2.tls=true"
-
-########## PIHOLE  ##########
-  pihole:
-    container_name: pihole
-    restart: unless-stopped
-    image: pihole/pihole
-    environment:
-      - "WEBPASSWORD=master"
-      - "VIRTUAL_HOST=pihole.traefik.me"
-    dns:
-      - 127.0.0.1
-      - 1.1.1.1
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.pihole-http.rule=Host(`pihole.traefik.me`) && Pathprefix(`/admin`)"
-      - "traefik.http.routers.pihole-http.entrypoints=https"
-      - "traefik.http.services.pihole.loadbalancer.server.port=80"
-      - "traefik.tcp.routers.pihole-dns.entrypoints=dns"
-      - "traefik.tcp.routers.pihole-dns.service=pihole"
-      - "traefik.udp.routers.pihole-udp.entrypoints=udpdns"
-      - "traefik.udp.routers.pihole-udp.service=pihole"
-      - "traefik.udp.services.pihole.loadbalancer.server.port=53"
-
-########## JENKINS OCEANBLUE  ##########
-  jenkins:
-    image: jenkinsci/blueocean
-    container_name: jenkins
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jenkins.rule=Host(`jenkins.traefik.me`)"
-      - "traefik.http.routers.jenkins.entrypoints=https"
-      - "traefik.http.services.jenkins.loadbalancer.server.port=8080"
-      - "traefik.http.routers.jenkins.tls=true"
-    volumes:
-      - ./jenkins-data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
+              #- --traefik.http.routers.whoami2.tls.certresolver="letsencrypt"
+              - --certificatesresolvers.le.acme.tlschallenge=true
+networks:
+    traefik_network:
+        driver: bridge
