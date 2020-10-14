@@ -47,9 +47,23 @@ services:
             - --certificatesresolvers.le.acme.tlschallenge=true
 
 ########## APP TEST 1 WHOAMI ##########
-  app1whoami:
+  app1.1whoami:
         image: containous/whoami
-        container_name: app1
+        container_name: app1.1
+        restart: unless-stopped
+        networks: 
+          - traefik_network
+        labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.whoami1.rule=Host(`app.127.0.0.1.traefik.me`) && Pathprefix(`/app1`)"
+              - "traefik.http.routers.whoami1.entrypoints=https"
+              - "traefik.http.services.whoami1.loadbalancer.server.port=80"
+              - "traefik.http.routers.whoami1.tls=true"
+              #- --traefik.http.routers.whoami1.tls.certresolver="letsencrypt"
+              - --certificatesresolvers.le.acme.tlschallenge=true
+  app1.2whoami:
+        image: containous/whoami
+        container_name: app1.2
         restart: unless-stopped
         networks: 
           - traefik_network
@@ -63,9 +77,23 @@ services:
               - --certificatesresolvers.le.acme.tlschallenge=true
 
 ########## APP TEST 2 WHOAMI  ##########
-  app2whoami:
+  app2.1whoami:
            image: containous/whoami
-           container_name: app2
+           container_name: app2.1
+           restart: unless-stopped
+           networks: 
+            - traefik_network
+           labels:
+              - "traefik.enable=true"
+              - "traefik.http.routers.whoami2.rule=Host(`app.127.0.0.1.traefik.me`) && Pathprefix(`/app2`)"
+              - "traefik.http.routers.whoami2.entrypoints=https"
+              - "traefik.http.services.whoami2.loadbalancer.server.port=80"
+              - "traefik.http.routers.whoami2.tls=true"
+              #- --traefik.http.routers.whoami2.tls.certresolver="letsencrypt"
+              - --certificatesresolvers.le.acme.tlschallenge=true
+  app2.2whoami:
+           image: containous/whoami
+           container_name: app2.2
            restart: unless-stopped
            networks: 
             - traefik_network
